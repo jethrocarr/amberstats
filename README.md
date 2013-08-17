@@ -47,6 +47,6 @@ upgrade lifespan) and the IP address of the server sending the API request.
 To get started with AmberStats, you'll need to setup the AmberStats collection
 server and UI, then start adding it to applications.
 
-* [[Installation]]
-* [[Writing Agents]]
+Refer to https://projects.jethrocarr.com/p/oss-amberstats/doc/ for details on
+how to setup AmberdStats
 
