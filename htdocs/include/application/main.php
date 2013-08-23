@@ -14,5 +14,7 @@
 require("inc_apps.php");
 require("inc_platforms.php");
 require("inc_servers.php");
+require("inc_queue.php");
+require("inc_rules.php");
 
 ?>

@@ -31,19 +31,6 @@ $GLOBALS["config"]["schema_version"]		= "20130817";
 
 
 
-/*
-	Apply required PHP settings
-*/
-ini_set('memory_limit', '32M');			// note that Amberphplib doesn't need much RAM apart from when
-						// doing source diffs or graph generation.
-
-
-
-/*
-	Inherit User Configuration
-*/
-include("config-settings.php");
-
 
 
 /*
@@ -51,7 +38,7 @@ include("config-settings.php");
 */
 
 // Initate session variables
-if ($_SERVER['SERVER_NAME'])
+if (!empty($_SERVER['SERVER_NAME']))
 {
 	// proper session variables
 	session_name("amberstats");
@@ -62,7 +49,15 @@ else
 	// trick to make logging and error system work correctly for scripts.
 	$GLOBALS["_SESSION"]	= array();
 	$_SESSION["mode"]	= "cli";
+	$_SESSION["user"]["id"] = 0;
 }
+
+
+/*
+	Inherit User Configuration
+*/
+include("config-settings.php");
+
 
 
 /*
