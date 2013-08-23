@@ -112,7 +112,7 @@ class phone_home
 			// aggregating the server name and the instance name (if any) however we then hash
 			// for privacy reasons.
 
-			$this->stats["subscription_id"] = @md5($_SERVER["SERVER_NAME"] . $_SESSION["user"]["instance"]["id"] . rand(0,9000));
+			$this->stats["subscription_id"] = @md5($_SERVER["SERVER_NAME"] . $_SESSION["user"]["instance"]["id"] . rand(0,1000000));
 
 			$sql_obj		= New sql_query;
 			$sql_obj->string	= "UPDATE config SET value='". $this->stats["subscription_id"] ."' WHERE name='SUBSCRIPTION_ID' LIMIT 1";
