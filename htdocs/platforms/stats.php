@@ -69,14 +69,14 @@ class page_output
 	function execute()
 	{
 		/*
-			Fetch data for use with graphs from SQL database
+			We need to get a list of all the version IDs for this particular platform.
 		*/
 
+		$version_id_list = array();
+
 		$obj_version_sql		= New sql_query;
-		$obj_version_sql->string	= "SELECT id, version_minor FROM stats_platform_versions WHERE id_platform='". $this->obj_platform->id ."'";
+		$obj_version_sql->string	= "SELECT id FROM stats_platform_versions WHERE id_platform='". $this->obj_platform->id ."'";
 		$obj_version_sql->execute();
-		
-		$version_map = array();
 		
 		if ($obj_version_sql->num_rows())
 		{
@@ -84,36 +84,38 @@ class page_output
 
 			foreach ($obj_version_sql->data as $data_row)
 			{
-				$version_map[ $data_row["id"] ] = $data_row["version_minor"];
+				$version_id_list[] = $data_row["id"];
 			}
 		}
 
-		$version_id_list = format_arraytocommastring(array_keys($version_map));
+		$version_id_list = format_arraytocommastring($version_id_list);
 
 		unset($obj_version_sql);
 
 
 
 
-
-
-
-
-		$date_today = date("Y-m-d");
-
-		$date_month_start	= time_calculate_monthdate_first($date_today);
-		$date_month_end		= time_calculate_monthdate_last($date_today);
-
-
-		// Current Version Splits
+		/*
+			Install base over past 30 days
+		*/
 
 		$obj_sql		= New sql_query;
-		$obj_sql->string	= "SELECT stats_platform_versions.version_minor as version, COUNT(A.subscription_id) as total "
-					 ."FROM "
-					 ."(SELECT DISTINCT id_platform_version, subscription_id FROM stats WHERE id_platform_version IN (". $version_id_list .") AND date >= '$date_month_start') A "
-					 ."LEFT JOIN stats_platform_versions ON A.id_platform_version = stats_platform_versions.id "
-					 ."GROUP BY id_platform_version "
-					 ."ORDER BY version";
+		$obj_sql->string	= "SELECT DISTINCT
+					stats_platform_versions.version_major as version,
+					COUNT(A.subscription_id) as total
+					FROM
+					(
+						SELECT DISTINCT
+						id_platform_version,
+						subscription_id
+						FROM stats
+						WHERE id_platform_version IN
+							(SELECT id FROM stats_platform_versions WHERE id_platform='". $this->obj_platform->id ."')
+						AND DATE_SUB(CURDATE(),INTERVAL 1 YEAR) <= date
+					) A
+					LEFT JOIN stats_platform_versions ON A.id_platform_version = stats_platform_versions.id 
+					GROUP BY version
+					ORDER BY version";
 		$obj_sql->execute();
 
 		if ($obj_sql->num_rows())
@@ -141,17 +143,33 @@ class page_output
 
 
 
-		// Phone Home Activity
-		// For the last 12 months show the phone home activity per major version
+		/*
+			Obtain size over time range for unique members actively reporting their
+			status back.
+		*/
 
 		$obj_sql		= New sql_query;
-		$obj_sql->string	= "SELECT MONTHNAME(date) as month,
+		$obj_sql->string	= "SELECT DISTINCT
+					A.year as year,
+					A.month as month,
+					stats_platform_versions.version_major as version,
+					A.total as total
+					FROM
+					(
+						SELECT
+						MONTHNAME(date) as month,
 						YEAR(date) as year,
 						id_platform_version as version,
 						COUNT(DISTINCT(subscription_id)) as total
 						FROM stats
-						WHERE id_platform_version IN (". $version_id_list .")
-						GROUP BY YEAR(date), MONTH(date), id_platform_version";
+						WHERE id_platform_version IN 
+							(SELECT id FROM stats_platform_versions WHERE id_platform='". $this->obj_platform->id ."')
+						GROUP BY YEAR(date),
+						MONTH(date),
+						id_platform_version
+					) A
+					LEFT JOIN stats_platform_versions ON A.version = stats_platform_versions.id";
+
 		$obj_sql->execute();
 
 		if ($obj_sql->num_rows())
@@ -200,7 +218,7 @@ class page_output
 			$data3 = array();
 			foreach ($this->graph_activity["versions"] as $version)
 			{
-			  	$data3[] = "{$version}: '". $version_map[$version] ."'";
+			  	$data3[] = "{$version}: '". $version ."'";
 			}
 			$this->graph_activity["versions"] = format_arraytocommastring($data3);
 
@@ -211,15 +229,27 @@ class page_output
 
 
 
+		/*
+			Obtain historical stats and sizes
+		*/
 
-		// Historical totals for platformlication per minor version
 		$obj_sql		= New sql_query;
-		$obj_sql->string	= "SELECT stats_platform_versions.version_minor as version, COUNT(A.subscription_id) as total "
-					 ."FROM "
-					 ."(SELECT DISTINCT id_platform_version, subscription_id FROM stats WHERE id_platform_version IN (". $version_id_list .")) A "
-					 ."LEFT JOIN stats_platform_versions ON A.id_platform_version = stats_platform_versions.id "
-					 ."GROUP BY id_platform_version "
-					 ."ORDER BY version";
+		$obj_sql->string	= "SELECT DISTINCT
+					stats_platform_versions.version_major as version,
+					COUNT(A.subscription_id) as total
+					FROM
+					(
+						SELECT DISTINCT
+						id_platform_version,
+						subscription_id
+						FROM stats
+						WHERE id_platform_version IN
+							(SELECT id FROM stats_platform_versions WHERE id_platform='". $this->obj_platform->id ."')
+					) A
+					LEFT JOIN stats_platform_versions ON A.id_platform_version = stats_platform_versions.id 
+					GROUP BY version
+					ORDER BY version";
+
 		$obj_sql->execute();
 
 		if ($obj_sql->num_rows())
