@@ -72,7 +72,7 @@ class page_output
 		$structure = NULL;
 		$structure["fieldname"]				= "PHONE_HOME";
 		$structure["type"]				= "checkbox";
-		$structure["options"]["label"]			= "Report back to the developers with application, OS, PHP version and a random unique ID so we can better improve this software. (all information is anonymous and private and greatly appreciated!)";
+		$structure["options"]["label"]			= "Report back to the developers with application, OS, PHP version and a random unique ID so we can better improve this software. (all information is anonymous, private and greatly appreciated. We use this information to focus development and packaging on the main platforms our users are running to better meet your needs.";
 		$structure["options"]["no_translate_fieldname"]	= "yes";
 		$this->obj_form->add_input($structure);
 

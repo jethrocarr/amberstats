@@ -142,7 +142,7 @@ class page_output
 	function render_html()
 	{
 		// title + summary
-		print "<h3>PLATFORM DETAILS</h3><br>";
+		print "<h3>APPLICATION DETAILS</h3><br>";
 		print "<p>View and adjust details for your selected app.</p>";
 
 	

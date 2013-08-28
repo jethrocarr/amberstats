@@ -21,6 +21,8 @@ if (user_permissions_get("admin"))
 	
 	$data					= array();
 
+	$data["PHONE_HOME"]			= security_form_input_predefined("checkbox", "PHONE_HOME", 0, "");
+
 	$data["DATEFORMAT"]			= security_form_input_predefined("any", "DATEFORMAT", 1, "");
 	$data["TIMEZONE_DEFAULT"]		= security_form_input_predefined("any", "TIMEZONE_DEFAULT", 1, "");
 

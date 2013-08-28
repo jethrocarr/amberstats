@@ -147,31 +147,31 @@ function process_queue()
 
 			// 7. Timestamp.
 
-			$final_timestamp = $data_row["timestamp"];
+			$final_date = date("Y-m-d", $data_row["timestamp"]);
 
 
 
 			// Processing complete - time to create the record!
 			$obj_sql_final		= New sql_query;
-			$obj_sql_final->string	= "INSERT INTO stats
-							(id_app,
-							id_app_version,
-							id_server_version,
-							id_platform_version,
-							id_country,
-							timestamp,
-							subscription_type,
-							subscription_id
-							) VALUES (
-							'$final_app_id',
-							'$final_app_version_id',
-							'$final_server_version_id',
-							'$final_platform_version_id',
-							'$final_country_id',
-							'$final_timestamp',
-							'$final_subscription_type',
-							'$final_subscription_id'
-							)";
+			$obj_sql_final->string	= "INSERT INTO stats "
+							."(id_app, "
+							."id_app_version, "
+							."id_server_version, "
+							."id_platform_version, "
+							."id_country, "
+							."date, "
+							."subscription_type, "
+							."subscription_id "
+							.") VALUES ( "
+							."'$final_app_id', "
+							."'$final_app_version_id', "
+							."'$final_server_version_id', "
+							."'$final_platform_version_id', "
+							."'$final_country_id', "
+							."'$final_date', "
+							."'$final_subscription_type', "
+							."'$final_subscription_id' "
+							.")";
 			$obj_sql_final->execute();
 
 			if ($obj_sql_final->fetch_insert_id())

@@ -3,7 +3,7 @@
 	inc_phone_home.php
 
 	This class provides functions for reading stats from the system and submitting
-	then back to Amberdms in a "phone-home" feature.
+	then back to Amberstats in a "phone-home" feature.
 
 	Typicially this class is called at login but only actually executes once a day.
 
@@ -14,8 +14,8 @@
 
 class phone_home
 {
-	var $url	= "https://www.amberdms.com/api/opensource/amberdms_phone_home.php";
-	var $url_ssl	= "true";	// set to true to enforce validation of SSL certificate
+	var $url	= "https://prod-dev1.local.jethrocarr.com/development/opensource/oss-amberstats/htdocs/api/simple_post.php";
+	var $url_ssl	= false;	// set to true to enforce validation of SSL certificate
 
 	var $stats;	// used to hold stats about the system for submission upstream
 
@@ -31,7 +31,7 @@ class phone_home
 	*/
 	function check_enabled()
 	{
-		if (sql_get_singlevalue("SELECT value FROM config WHERE name='PHONE_HOME' LIMIT 1") == "enabled")
+		if ($GLOBALS["config"]["PHONE_HOME"] == "enabled" || $GLOBALS["config"]["PHONE_HOME"] == "1")
 		{
 			// enabled
 			return 1;
@@ -55,7 +55,7 @@ class phone_home
 	*/
 	function check_phone_home_timer()
 	{
-		$time_update		= sql_get_singlevalue("SELECT value FROM config WHERE name='PHONE_HOME_TIMER' LIMIT 1");
+		$time_update		= $GLOBALS["config"]["PHONE_HOME_TIMER"];
 		$time_current		= mktime();
 
 		if (($time_update + 43200) < $time_current)
@@ -93,7 +93,7 @@ class phone_home
 		*/
 
 		$this->stats["server_app"]	= $_SERVER["SERVER_SOFTWARE"];
-		$this->stats["server_php"]	= phpversion();
+		$this->stats["server_platform"]	= phpversion();
 
 
 		/*
@@ -101,8 +101,8 @@ class phone_home
 		*/
 
 		// account information
-		$this->stats["subscription_support"]	= sql_get_singlevalue("SELECT value FROM config WHERE name='SUBSCRIPTION_SUPPORT' LIMIT 1");
-		$this->stats["subscription_id"]		= sql_get_singlevalue("SELECT value FROM config WHERE name='SUBSCRIPTION_ID' LIMIT 1");
+		$this->stats["subscription_type"]	= $GLOBALS["config"]["SUBSCRIPTION_SUPPORT"];
+		$this->stats["subscription_id"]		= $GLOBALS["config"]["SUBSCRIPTION_ID"];
 
 		// check account ID
 		if (!$this->stats["subscription_id"])
@@ -131,7 +131,7 @@ class phone_home
 	/*
 		stats_submit()
 
-		Upload the stats to the Amberdms servers for user base size & tracking purposes.
+		Upload the stats to the Amberstats servers for user base size & tracking purposes.
 
 		Returns
 		0	Failure - possible HTTP/S transport issue such as firewalled DMZ server?
@@ -173,10 +173,15 @@ class phone_home
 		curl_setopt($ch,CURLOPT_TIMEOUT,2);				// wait a max of 2 seconds
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->url_ssl); 	// ssl validation options
 
+		if ($this->url_ssl == false)
+		{
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); // ssl validation options
+		}
+
 		// execute post
 		if (!curl_exec($ch))
 		{	
-			log_write("debug", "process", "Unable to phone home to Amberdms servers, Curl error whilst POSTing data: ". curl_error($ch));
+			log_write("debug", "process", "Unable to phone home to Amberstats server, Curl error whilst POSTing data: ". curl_error($ch));
 			
 			curl_close($ch);
 			return 0;
@@ -185,12 +190,16 @@ class phone_home
 		// check HTTP return code
 		switch ($http_return_code = curl_getinfo($ch, CURLINFO_HTTP_CODE))
 		{
+			case "500":
+				log_write("debug", "process", "Unexpected fault on the Amberstats server, phone home not recorded");
+			break;
+
 			case "400":
 				log_write("debug", "process", "Invalid data provided to phone home interface, information refused.");
 			break;
 
 			case "200":
-				log_write("debug", "process", "Server stats successfully returned to Amberdms. Thank you for submitting.");
+				log_write("debug", "process", "Server stats successfully returned to Amberstats. Thank you for submitting.");
 			break;
 
 			default:
