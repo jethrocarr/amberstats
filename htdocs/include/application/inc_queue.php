@@ -114,7 +114,7 @@ function process_queue()
 			if (!$final_platform_version_id)
 			{
 				log_write("debug", "process", "Failed, unknown problem during platform version processing - input error?");
-				$rows_failed = $data_row["id"];
+				$rows_failed[] = $data_row["id"];
 				continue;
 			}
 
@@ -126,7 +126,7 @@ function process_queue()
 			if (!$final_server_version_id)
 			{
 				log_write("debug", "process", "Failed, unknown problem during server version processing - input error?");
-				$rows_failed = $data_row["id"];
+				$rows_failed[] = $data_row["id"];
 				continue;
 			}
 
@@ -189,9 +189,42 @@ function process_queue()
 			$rows_to_delete[] = $data_row["id"];
 		}
 	}
+
+	/*
+		Delete processed rows
+	*/
+	if ($GLOBALS["config"]["QUEUE_DELETE_PROCESSED"] && !empty($rows_to_delete))
+	{
+		$rows_to_delete = format_arraytocommastring($rows_to_delete);
+
+		$obj_sql 		= New sql_query;
+		$obj_sql->string	= "DELETE FROM stats_incoming WHERE id IN ($rows_to_delete)";
+		
+		if (!$obj_sql->execute())
+		{
+			log_write("error", "inc_queue", "An unexpected error occured whilst deleting records from the queue");
+		}
+	}
+	else
+	{
+		log_write("warning", "inc_queue", "Amberstats is configured to keep processed entires inside stats_incoming table - this will lead to duplicate values being imported!");
+	}
+
+	if ($GLOBALS["config"]["QUEUE_DELETE_INVALID"] && !empty($rows_failed)) 
+	{
+		$rows_failed = format_arraytocommastring($rows_failed);
+
+		$obj_sql 		= New sql_query;
+		$obj_sql->string	= "DELETE FROM stats_incoming WHERE id IN ($rows_failed)";
+		
+		if (!$obj_sql->execute())
+		{
+			log_write("error", "inc_queue", "An unexpected error occured whilst deleting records from the queue");
+		}
+	}
+	
 	
 } // end of process_queue
-
 
 
 

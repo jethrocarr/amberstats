@@ -89,13 +89,14 @@ else
 			*/
 
 			$obj_sql		= New sql_query;
-			$obj_sql->string	= "SELECT MONTHNAME(date) as month,
+			$obj_sql->string	= "SELECT MONTH(date) as month,
 							YEAR(date) as year,
 							id_app,
 							COUNT(DISTINCT(subscription_id)) as total
 							FROM stats
 							WHERE DATE_SUB(CURDATE(),INTERVAL 1 YEAR) <= date
-							GROUP BY YEAR(date), MONTH(date), id_app";
+							GROUP BY YEAR(date), MONTH(date), id_app
+							ORDER BY year, month";
 			$obj_sql->execute();
 
 			if ($obj_sql->num_rows())

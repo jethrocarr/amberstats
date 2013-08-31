@@ -39,6 +39,24 @@ class page_output
 		$this->obj_form->method = "post";
 
 
+		// queue options
+		$structure = NULL;
+		$structure["fieldname"]				= "QUEUE_DELETE_PROCESSED";
+		$structure["type"]				= "checkbox";
+		$structure["options"]["label"]			= "Once incoming records have been processed, delete them from the queue. (Always enable, unless debugging)";
+		$structure["options"]["no_translate_fieldname"]	= "yes";
+		$this->obj_form->add_input($structure);
+
+		$structure = NULL;
+		$structure["fieldname"]				= "QUEUE_DELETE_INVALID";
+		$structure["type"]				= "checkbox";
+		$structure["options"]["label"]			= "Invalid records (records with unknown app names or server types) can be left in the queue to be reviewed and processed once the rules are adjusted. Or they can be ignored and deleted.";
+		$structure["options"]["no_translate_fieldname"]	= "yes";
+		$this->obj_form->add_input($structure);
+
+
+
+
 /*
 		// security options
 		$structure = NULL;
@@ -97,6 +115,7 @@ class page_output
 		
 		
 		// define subforms
+		$this->obj_form->subforms["config_queue"]		= array("QUEUE_DELETE_PROCESSED", "QUEUE_DELETE_INVALID");
 //		$this->obj_form->subforms["config_security"]		= array("BLACKLIST_ENABLE", "BLACKLIST_LIMIT");
 		$this->obj_form->subforms["config_dateandtime"]		= array("DATEFORMAT", "TIMEZONE_DEFAULT");
 		$this->obj_form->subforms["config_amberstats"]		= array("PHONE_HOME", "PHONE_HOME_EXAMPLE");

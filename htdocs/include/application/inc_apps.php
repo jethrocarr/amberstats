@@ -162,6 +162,14 @@ class app
 
 		$this->id = $sql_obj->fetch_insert_id();
 
+
+		// add an agent along with the app
+		$sql_obj		= New sql_query;
+		$sql_obj->string	= "INSERT INTO `apps_agents` (id_application, agent_name, agent_description) VALUES ('". $this->id ."', '". $this->data["app_name"] ."', '')";
+		$sql_obj->execute();
+
+
+
 		// assign the app to the domains
 		return $this->id;
 

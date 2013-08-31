@@ -131,8 +131,8 @@ else
 	?>
 <!--
 <script type="text/javascript" src="external/jquery/jquery.js"></script>
-<script type="text/javascript" src="include/javascript/javascript.js"></script>
 -->
+<script type="text/javascript" src="include/javascript/javascript.js"></script>
 
 <?php
 
