@@ -341,8 +341,8 @@ class page_output
 
 		// This month only
 		print "<br><br>";
-		print "<p><b>Active, unique installations this month</b><br>
-		Number of unique installation of the application per version seen. Note that users who upgrade will appear in the total for both versions.</p>";
+		print "<p><b>Active, unique installations in past 28 days.</b><br>
+		Number of unique installation of the application per version seen in the past 28 days. Note that users who upgrade will appear in the total for both versions.</p>";
 		if (empty($this->graph_versions_atm))
 		{
 			format_msgbox("info", "There is no current statistics for application versions, unable to generate graph");
@@ -368,7 +368,8 @@ class page_output
 
 		// Major application versions - unique installs
 		print "<p><b>Unique application installations per version.</b><br>
-		Number of unique installation of the application per version seen. Note that users who upgrade will appear in the total for both versions.</p>";
+		Number of unique installation of the application per version ever seen. Note that users who upgrade will appear in the total for both versions.</p>";
+
 		if (empty($this->graph_versions))
 		{
 			format_msgbox("info", "There is no current statistics for application versions, unable to generate graph");
