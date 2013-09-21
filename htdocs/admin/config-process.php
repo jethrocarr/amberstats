@@ -22,12 +22,50 @@ if (user_permissions_get("admin"))
 	$data					= array();
 
 	$data["QUEUE_DELETE_PROCESSED"]		= security_form_input_predefined("checkbox", "QUEUE_DELETE_PROCESSED", 0, "");
+	$data["QUEUE_PURGE_COLLECTED"]		= security_form_input_predefined("checkbox", "QUEUE_PURGE_COLLECTED", 0, "");
 	$data["QUEUE_DELETE_INVALID"]		= security_form_input_predefined("checkbox", "QUEUE_DELETE_INVALID", 0, "");
+	
+	$data["STATS_GEOIP_LOOKUP"]		= security_form_input_predefined("checkbox", "STATS_GEOIP_LOOKUP", 0, "");
+	$data["STATS_GEOIP_COUNTRYDB_V4"]	= security_form_input_predefined("any", "STATS_GEOIP_COUNTRYDB_V4", 0, "");
+	$data["STATS_GEOIP_COUNTRYDB_V6"]	= security_form_input_predefined("any", "STATS_GEOIP_COUNTRYDB_V6", 0, "");
 
 	$data["DATEFORMAT"]			= security_form_input_predefined("any", "DATEFORMAT", 1, "");
 	$data["TIMEZONE_DEFAULT"]		= security_form_input_predefined("any", "TIMEZONE_DEFAULT", 1, "");
 	
 	$data["PHONE_HOME"]			= security_form_input_predefined("checkbox", "PHONE_HOME", 0, "");
+
+
+	if ($data["STATS_GEOIP_LOOKUP"])
+	{
+		if (empty($data["STATS_GEOIP_COUNTRYDB_V4"]))
+		{
+			log_write("error", "process", "You need to set the path to a copy of the GeoIP database");
+			error_flag_field("STATS_GEOIP_COUNTRYDB_V4");
+		}
+		else
+		{
+			if (!file_exists($data["STATS_GEOIP_COUNTRYDB_V4"]))
+			{
+				log_write("error", "process", "Provided GeoIP file does not exist or it not readable by this process");
+				error_flag_field("STATS_GEOIP_COUNTRYDB_V4");
+			}
+		}
+
+		if (empty($data["STATS_GEOIP_COUNTRYDB_V6"]))
+		{
+			log_write("error", "process", "You need to set the path to a copy of the GeoIP database");
+			error_flag_field("STATS_GEOIP_COUNTRYDB_V6");
+		}
+		else
+		{
+			if (!file_exists($data["STATS_GEOIP_COUNTRYDB_V6"]))
+			{
+				log_write("error", "process", "Provided GeoIP file does not exist or it not readable by this process");
+				error_flag_field("STATS_GEOIP_COUNTRYDB_V6");
+			}
+		}
+
+	}
 
 
 

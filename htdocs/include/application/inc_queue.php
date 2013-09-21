@@ -22,6 +22,39 @@ function process_queue()
 
 
 	/*
+		If debugging QUEUE_PURGE_COLLECTED enabled, we should delete contents of all
+		stats before running queue process.
+	*/
+
+	if ($GLOBALS["config"]["QUEUE_PURGE_COLLECTED"])
+	{
+		log_write("warning", "inc_queue", "Truncacting existing stats due to QUEUE_PURGE_COLLECTED option enabled");
+
+		$sql_obj		= New sql_query;
+		$sql_obj->string	= "TRUNCATE TABLE `stats`";
+		$sql_obj->execute();
+
+		$sql_obj		= New sql_query;
+		$sql_obj->string	= "TRUNCATE TABLE `stats_app_versions`";
+		$sql_obj->execute();
+
+		$sql_obj		= New sql_query;
+		$sql_obj->string	= "TRUNCATE TABLE `stats_country`";
+		$sql_obj->execute();
+
+		$sql_obj		= New sql_query;
+		$sql_obj->string	= "TRUNCATE TABLE `stats_platform_versions`";
+		$sql_obj->execute();
+
+		$sql_obj		= New sql_query;
+		$sql_obj->string	= "TRUNCATE TABLE `stats_server_versions`";
+		$sql_obj->execute();
+	}
+	
+
+
+
+	/*
 		Load rules and matching data needed for processing all the records
 	*/
 
@@ -46,10 +79,33 @@ function process_queue()
 	}
 
 
-	// Platform Maching
+	/*
+		Load GeoIP DB if enabled
+	*/
 
-	// Web Server/OS Matching
+	if ($GLOBALS["config"]["STATS_GEOIP_LOOKUP"])
+	{
+		$obj_geoip_v4 = geoip_open($GLOBALS["config"]["STATS_GEOIP_COUNTRYDB_V4"], GEOIP_MEMORY_CACHE);
 
+		if (!$obj_geoip_v4)
+		{
+			log_write("error", "inc_queue", "Unable to open GeoIP file \"". $GLOBALS["config"]["STATS_GEOIP_COUNTRYDB_V4"] ."\"");
+			log_write("error", "inc_queue", "Disabling GeoIP for this run");
+
+			$GLOBALS["config"]["STATS_GEOIP_LOOKUP"] = 0;
+		}
+		
+
+		$obj_geoip_v6 = geoip_open($GLOBALS["config"]["STATS_GEOIP_COUNTRYDB_V6"], GEOIP_MEMORY_CACHE);
+
+		if (!$obj_geoip_v6)
+		{
+			log_write("error", "inc_queue", "Unable to open GeoIP file \"". $GLOBALS["config"]["STATS_GEOIP_COUNTRYDB_V6"] ."\"");
+			log_write("error", "inc_queue", "Disabling GeoIP for this run");
+
+			$GLOBALS["config"]["STATS_GEOIP_LOOKUP"] = 0;
+		}
+	}
 
 
 
@@ -132,8 +188,7 @@ function process_queue()
 
 
 
-			// 5. Process unique ID details for this particular application
-			// TODO
+			// 5. Process unique ID details for this particular installation.
 
 			$final_subscription_type	= $data_row["subscription_type"];
 			$final_subscription_id		= $data_row["subscription_id"];
@@ -142,8 +197,33 @@ function process_queue()
 			// 6. Process IP address. We don't really care about the IP address itself, but we will
 			//    probably want to lookup the IP address against GeoIP and record the origin of the
 			//    traffic to a particular region, then discard the address.
-			$final_country_id = 0;
 			
+			if ($GLOBALS["config"]["STATS_GEOIP_LOOKUP"])
+			{
+				if (ip_type_detect($data_row["ipaddress"]) == 4)
+				{
+					$geoip_country_code = geoip_country_code_by_addr($obj_geoip_v4, $data_row["ipaddress"]);
+					$geoip_country_name = geoip_country_name_by_addr($obj_geoip_v4, $data_row["ipaddress"]);
+				}
+				else
+				{
+					$geoip_country_code = geoip_country_code_by_addr_v6($obj_geoip_v6, $data_row["ipaddress"]);
+					$geoip_country_name = geoip_country_name_by_addr_v6($obj_geoip_v6, $data_row["ipaddress"]);
+				}
+
+				if ($geoip_country_code == "" || $geoip_country_name == "")
+				{
+					$geoip_country_code = "??";
+					$geoip_country_name = "Unknown";
+				}
+			
+				$final_country_id = rules_find_country_id($geoip_country_code, $geoip_country_name);
+			}
+			else
+			{
+				$final_country_id = 0;
+			}
+
 
 			// 7. Timestamp.
 
@@ -189,6 +269,7 @@ function process_queue()
 			$rows_to_delete[] = $data_row["id"];
 		}
 	}
+
 
 	/*
 		Delete processed rows

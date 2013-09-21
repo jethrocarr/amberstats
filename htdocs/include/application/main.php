@@ -11,6 +11,7 @@
 @log_debug("start", "");
 
 // Includes
+require("inc_geoip.php"); // external, LGPL component
 require("inc_apps.php");
 require("inc_platforms.php");
 require("inc_servers.php");

@@ -100,6 +100,59 @@ function rules_find_app_version($app_id, $app_version_string)
 
 
 /*
+	rules_find_country_id
+
+	Take the provided country code and country name and return an ID for an existing known
+	location, or create a new one in the DB.
+
+	Fields
+	country_code		2-Char Country Code
+	country_name		255 Varchar Country Code
+
+	Returns
+	0	Failure to process
+	#	ID of the country in stats_country
+*/
+
+function rules_find_country_id($country_code, $country_name)
+{
+	log_write("debug", "inc_rules" , "Executing rules_find_country_id($country_code, $country_name)");
+
+	// serve from cache where possible - keep bulk processing FAST
+	if (isset($GLOBALS["cache"]["rules_find_country_id"]["{$country_code}_{$country_name}"]))
+	{
+		return $GLOBALS["cache"]["rules_find_country_id"]["{$country_code}_{$country_name}"];
+	}
+
+	log_write("debug", "inc_rules", "Country not in cache, running lookup process...");
+
+
+	// Do we have an existing version in our stats DB?
+	$country_id = sql_get_singlevalue("SELECT id as value FROM stats_country WHERE country_code='$country_code' AND country_name='$country_name' LIMIT 1");
+
+	if (!$country_id)
+	{
+		// We haven't processed this country before, add a new country to the system.
+
+		log_write("debug", "inc_rules", "Generating new country entry");
+
+		$obj_sql		= New sql_query;
+		$obj_sql->string	= "INSERT INTO stats_country (country_code, country_name) VALUES ('$country_code', '$country_name')";
+		$obj_sql->execute();
+
+		$country_id = $obj_sql->fetch_insert_id();
+	}
+
+	// append to cache to avoid duplicate lookups
+	$GLOBALS["cache"]["rules_find_country_id"]["{$country_code}_{$country_name}"] = $country_id;
+
+	return $country_id;
+
+} // end of rules_find_country_id
+
+
+
+/*
 	rules_find_platform_version
 
 	Take the provided application ID and the string with the platform version and either
@@ -198,11 +251,6 @@ function rules_find_platform_version($app_id, $platform_version_string)
 	return $platform_version_id;
 
 } // end of rules_find_platform_version
-
-
-
-
-
 
 
 

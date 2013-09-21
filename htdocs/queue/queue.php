@@ -51,6 +51,7 @@ class page_output
 
 		$this->obj_table->sql_obj->prepare_sql_settable("stats_incoming");
 		$this->obj_table->sql_obj->prepare_sql_addfield("id", "");
+		$this->obj_table->sql_obj->prepare_sql_setlimit("100");
 
 		// options form
 		$this->obj_table->load_options_form();
@@ -83,6 +84,8 @@ class page_output
 			// display the table
 			$this->obj_table->render_options_form();
 			$this->obj_table->render_table_html();
+		
+			print "<p><i>Capped at 100 records max.</i></p>";
 
 		}
 

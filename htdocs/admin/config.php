@@ -48,6 +48,13 @@ class page_output
 		$this->obj_form->add_input($structure);
 
 		$structure = NULL;
+		$structure["fieldname"]				= "QUEUE_PURGE_COLLECTED";
+		$structure["type"]				= "checkbox";
+		$structure["options"]["label"]			= "Purge all existing collected records whenever an import runs. DANGEROUS, only use if debugging in conjunction with QUEUE_DELETE_PROCESSED";
+		$structure["options"]["no_translate_fieldname"]	= "yes";
+		$this->obj_form->add_input($structure);
+
+		$structure = NULL;
 		$structure["fieldname"]				= "QUEUE_DELETE_INVALID";
 		$structure["type"]				= "checkbox";
 		$structure["options"]["label"]			= "Invalid records (records with unknown app names or server types) can be left in the queue to be reviewed and processed once the rules are adjusted. Or they can be ignored and deleted.";
@@ -55,6 +62,29 @@ class page_output
 		$this->obj_form->add_input($structure);
 
 
+
+
+		// stats options
+		$structure = NULL;
+		$structure["fieldname"]				= "STATS_GEOIP_LOOKUP";
+		$structure["type"]				= "checkbox";
+		$structure["options"]["label"]			= "Perform a GeoIP lookup of IP addresses phoning home and use in stats";
+		$structure["options"]["no_translate_fieldname"]	= "yes";
+		$this->obj_form->add_input($structure);
+
+		$structure = NULL;
+		$structure["fieldname"]				= "STATS_GEOIP_COUNTRYDB_V4";
+		$structure["type"]				= "input";
+		$structure["options"]["label"]			= " IPv4 MaxMind GeoIP Lite Country Database Location";
+		$structure["options"]["no_translate_fieldname"]	= "yes";
+		$this->obj_form->add_input($structure);
+
+		$structure = NULL;
+		$structure["fieldname"]				= "STATS_GEOIP_COUNTRYDB_V6";
+		$structure["type"]				= "input";
+		$structure["options"]["label"]			= " IPv6 MaxMind GeoIP Lite Country Database Location";
+		$structure["options"]["no_translate_fieldname"]	= "yes";
+		$this->obj_form->add_input($structure);
 
 
 /*
@@ -115,7 +145,8 @@ class page_output
 		
 		
 		// define subforms
-		$this->obj_form->subforms["config_queue"]		= array("QUEUE_DELETE_PROCESSED", "QUEUE_DELETE_INVALID");
+		$this->obj_form->subforms["config_queue"]		= array("QUEUE_DELETE_PROCESSED", "QUEUE_PURGE_COLLECTED", "QUEUE_DELETE_INVALID");
+		$this->obj_form->subforms["config_stats"]		= array("STATS_GEOIP_LOOKUP", "STATS_GEOIP_COUNTRYDB_V4", "STATS_GEOIP_COUNTRYDB_V6");
 //		$this->obj_form->subforms["config_security"]		= array("BLACKLIST_ENABLE", "BLACKLIST_LIMIT");
 		$this->obj_form->subforms["config_dateandtime"]		= array("DATEFORMAT", "TIMEZONE_DEFAULT");
 		$this->obj_form->subforms["config_amberstats"]		= array("PHONE_HOME", "PHONE_HOME_EXAMPLE");
