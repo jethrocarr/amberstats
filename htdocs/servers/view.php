@@ -29,7 +29,8 @@ class page_output
 		$this->obj_menu_nav = New menu_nav;
 
 		$this->obj_menu_nav->add_item("Details", "page=servers/view.php&id=". $this->obj_server->id ."", TRUE);
-		$this->obj_menu_nav->add_item("Statistics", "page=servers/stats.php&id=". $this->obj_server->id ."");
+		$this->obj_menu_nav->add_item("Server Statistics", "page=servers/stats.php&id=". $this->obj_server->id ."");
+		$this->obj_menu_nav->add_item("Operating System Statistics", "page=servers/osstats.php&id=". $this->obj_server->id ."");
 		$this->obj_menu_nav->add_item("Delete", "page=servers/delete.php&id=". $this->obj_server->id ."");
 	}
 

@@ -1,21 +1,21 @@
 <?php
 /*
-	servers/stats.php
+	apps/stats.php
 
 	access:
 		admin
 
-	Statistics for the servers running the reported applications.
+	Statistics and other details relating to the application.
 */
 
 class page_output
 {
-	var $obj_server;
+	var $requires;
+	var $option_versions;
+
+	var $obj_app;
 	var $obj_menu_nav;
 	var $obj_form;
-
-	var $option_versions;
-	var $requires;
 
 	var $graph_activity;
 	var $graph_versions;
@@ -26,10 +26,10 @@ class page_output
 	{
 
 		// initate object
-		$this->obj_server			= New server;
+		$this->obj_app			= New app;
 
 		// fetch variables
-		$this->obj_server->id		= security_script_input('/^[0-9]*$/', $_GET["id"]);
+		$this->obj_app->id		= @security_script_input('/^[0-9]*$/', $_GET["id"]);
 		$this->option_versions		= @security_script_input('/^[a-z]*$/', $_GET["versions"]);
 
 		// options for stats
@@ -39,14 +39,13 @@ class page_output
 		}
 
 
-
 		// define the navigiation menu
 		$this->obj_menu_nav = New menu_nav;
 
-		$this->obj_menu_nav->add_item("Details", "page=servers/view.php&id=". $this->obj_server->id ."");
-		$this->obj_menu_nav->add_item("Server Statistics", "page=servers/stats.php&id=". $this->obj_server->id ."", TRUE);
-		$this->obj_menu_nav->add_item("Operating System Statistics", "page=servers/osstats.php&id=". $this->obj_server->id ."");
-		$this->obj_menu_nav->add_item("Delete", "page=servers/delete.php&id=". $this->obj_server->id ."");
+		$this->obj_menu_nav->add_item("Details", "page=apps/view.php&id=". $this->obj_app->id ."");
+		$this->obj_menu_nav->add_item("Application Statistics", "page=apps/stats.php&id=". $this->obj_app->id ."");
+		$this->obj_menu_nav->add_item("Geographical Statistics", "page=apps/geostats.php&id=". $this->obj_app->id ."", TRUE);
+		$this->obj_menu_nav->add_item("Delete", "page=apps/delete.php&id=". $this->obj_app->id ."");
 
 		// include the grafico library and it's dependencies
 		$this->requires["javascript"][]	= "external/prototype.js";
@@ -66,9 +65,9 @@ class page_output
 
 	function check_requirements()
 	{
-		if (!$this->obj_server->verify_id())
+		if (!$this->obj_app->verify_id())
 		{
-			log_write("error", "page_output", "The requested server (". $this->obj_server->id .") does not exist - possibly the server has been deleted?");
+			log_write("error", "page_output", "The requested app (". $this->obj_app->id .") does not exist - possibly the app has been deleted?");
 			return 0;
 		}
 
@@ -80,31 +79,43 @@ class page_output
 	function execute()
 	{
 		/*
-			Activity of phone homes for unique installations over lifespan of the server.
+			Fetch data for use with graphs from SQL database
+		*/
+
+		$date_today = date("Y-m-d");
+		$date_month_start	= time_calculate_monthdate_first($date_today);
+		$date_month_end		= time_calculate_monthdate_last($date_today);
+
+
+		/*
+			Version phone home activity by year and month for lifespan of the application.
+
+			This graph shows an overview of how actively used the application is, by counting
+			each time a unique installation is logged into each month.
 		*/
 
 		$obj_sql		= New sql_query;
 		$obj_sql->string	= "SELECT DISTINCT
 					A.year as year,
 					A.month as month,
-					stats_server_versions.version_". $this->option_versions ." as version,
-					stats_server_versions.id as version_id,
+					stats_app_versions.version_". $this->option_versions ." as version,
+					stats_app_versions.id as version_id,
 					A.total as total
 					FROM
 					(
 						SELECT
 						MONTH(date) as month,
 						YEAR(date) as year,
-						id_server_version as version,
+						id_app_version as version,
 						COUNT(DISTINCT(subscription_id)) as total
 						FROM stats
-						WHERE id_server_version IN 
-							(SELECT id FROM stats_server_versions WHERE id_server='". $this->obj_server->id ."')
+						WHERE id_app_version IN 
+							(SELECT id FROM stats_app_versions WHERE id_app='". $this->obj_app->id ."')
 						GROUP BY YEAR(date),
 						MONTH(date),
-						id_server_version
+						id_app_version
 					) A
-					LEFT JOIN stats_server_versions ON A.version = stats_server_versions.id
+					LEFT JOIN stats_app_versions ON A.version = stats_app_versions.id
 					ORDER BY year, month";
 
 		$obj_sql->execute();
@@ -116,16 +127,16 @@ class page_output
 			$data		= array();
 			$data2		= array();
 			$versions	= array();
-			$version_map	= array();
+			$versions_map	= array();
 			$dates		= array();
 
 			foreach ($obj_sql->data as $data_row)
 			{
-				$version_map[ $data_row["version"] ] = $data_row["version_id"];
+				$versions_map[ $data_row["version"] ] = $data_row["version_id"];
 				@$data[ $data_row["year"] ."-". $data_row["month"] ][ $data_row["version"] ] += $data_row["total"];
 			}
 
-			$versions	= array_keys($version_map);
+			$versions	= array_keys($versions_map);
 			$dates		= array_keys($data);
 
 			foreach ($dates as $date)
@@ -142,7 +153,6 @@ class page_output
 					}
 				}
 			}
-
 			$this->graph_activity["count"]		= $obj_sql->data_num_rows;
 			$this->graph_activity["versions"] 	= $versions;
 			$this->graph_activity["data"]		= $data2;
@@ -150,17 +160,16 @@ class page_output
 			$data3 = array();
 			foreach ($this->graph_activity["versions"] as $version)
 			{
-				$data3[] = "{$version_map[$version]}: [ ". format_arraytocommastring($this->graph_activity["data"][$version]) ."]";
+				$data3[] = "{$versions_map[$version]}: [ ". format_arraytocommastring($this->graph_activity["data"][$version]) ."]\n";
 			}
 			$this->graph_activity["data"] = format_arraytocommastring($data3);
 
 			$data3 = array();
 			foreach ($this->graph_activity["versions"] as $version)
 			{
-			  	$data3[] = "{$version_map[$version]}: '". $version ."'";
+			  	$data3[] = "{$versions_map[$version]}: '". $version ."'\n";
 			}
 			$this->graph_activity["versions"] = format_arraytocommastring($data3);
-
 
 		}
 
@@ -168,28 +177,17 @@ class page_output
 
 
 
-
 		/*
-			Unique installation versions reported in past 28 days.
+			Report on current versions reporting home in the last 28 days, by unique number of installations.
 		*/
 
 		$obj_sql		= New sql_query;
-		$obj_sql->string	= "SELECT DISTINCT
-					stats_server_versions.version_". $this->option_versions ." as version,
-					COUNT(A.subscription_id) as total
-					FROM
-					(
-						SELECT DISTINCT
-						id_server_version,
-						subscription_id
-						FROM stats
-						WHERE id_server_version IN
-							(SELECT id FROM stats_server_versions WHERE id_server='". $this->obj_server->id ."')
-						AND DATE_SUB(CURDATE(),INTERVAL 28 DAY) <= date
-					) A
-					LEFT JOIN stats_server_versions ON A.id_server_version = stats_server_versions.id 
-					GROUP BY version
-					ORDER BY version";
+		$obj_sql->string	= "SELECT DISTINCT stats_app_versions.version_". $this->option_versions ." as version, COUNT(A.subscription_id) as total "
+					 ."FROM "
+					 ."(SELECT DISTINCT id_app_version, subscription_id FROM stats WHERE id_app='". $this->obj_app->id ."' AND DATE_SUB(CURDATE(),INTERVAL 28 DAY) <= date) A "
+					 ."LEFT JOIN stats_app_versions ON A.id_app_version = stats_app_versions.id "
+					 ."GROUP BY version "
+					 ."ORDER BY version";
 		$obj_sql->execute();
 
 		if ($obj_sql->num_rows())
@@ -216,27 +214,20 @@ class page_output
 
 
 
+
+
 		/*
-			All versions reported in the life span of the server
+			Unique installations of all versions of the application for the life time of
+			the application.
 		*/
 
 		$obj_sql		= New sql_query;
-		$obj_sql->string	= "SELECT DISTINCT
-					stats_server_versions.version_". $this->option_versions ." as version,
-					COUNT(A.subscription_id) as total
-					FROM
-					(
-						SELECT DISTINCT
-						id_server_version,
-						subscription_id
-						FROM stats
-						WHERE id_server_version IN
-							(SELECT id FROM stats_server_versions WHERE id_server='". $this->obj_server->id ."')
-					) A
-					LEFT JOIN stats_server_versions ON A.id_server_version = stats_server_versions.id 
-					GROUP BY version
-					ORDER BY version";
-
+		$obj_sql->string	= "SELECT DISTINCT stats_app_versions.version_". $this->option_versions ." as version, COUNT(A.subscription_id) as total "
+					 ."FROM "
+					 ."(SELECT DISTINCT id_app_version, subscription_id FROM stats WHERE id_app='". $this->obj_app->id ."') A "
+					 ."LEFT JOIN stats_app_versions ON A.id_app_version = stats_app_versions.id "
+					 ."GROUP BY version "
+					 ."ORDER BY version";
 		$obj_sql->execute();
 
 		if ($obj_sql->num_rows())
@@ -266,14 +257,15 @@ class page_output
 	function render_html()
 	{
 		// title + summary
-		print "<h3>SERVER STATISTICS</h3><br>";
+		print "<h3>APPLICATION STATISTICS</h3><br>";
+
 
 		// options panel
 		print "<div class=\"stats_options\">";
 		print "<form method=\"get\" class=\"form_standard\">";
 		
 		$form = New form_input;
-		$form->formname = "server_options";
+		$form->formname = "apps_options";
 		$form->language = "en_us";
 
 		// include page name
@@ -288,7 +280,7 @@ class page_output
 		$structure = NULL;
 		$structure["fieldname"]		= "id";
 		$structure["type"]		= "hidden";
-		$structure["defaultvalue"]	= $this->obj_server->id;
+		$structure["defaultvalue"]	= $this->obj_app->id;
 		$form->add_input($structure);
 		$form->render_field("id");
 
@@ -314,14 +306,11 @@ class page_output
 		print "</div>";
 
 
-
-
-
 		// Phone home activity
 		print "<p><b>Unique installation activity over time</b></p>";
 		if (empty($this->graph_activity))
 		{
-			format_msgbox("info", "There is no current statistics for serverlication activity, unable to generate graph");
+			format_msgbox("info", "There is no current statistics for application activity, unable to generate graph");
 		}
 		elseif ($this->graph_activity["count"] < 10)
 		{
@@ -333,14 +322,14 @@ class page_output
 
 			print "<script>
 			Event.observe(window, 'load', function() {
-			var server_activity = new Grafico.StreamGraph($('server_activity'),
+			var app_activity = new Grafico.StreamGraph($('app_activity'),
 			{
 			  ". $this->graph_activity["data"] ."
 			},
 			{
 			  stream_line_smoothing: 'simple',
 			  stream_smart_insertion: false,
-			  stream_label_threshold: 2,
+			  stream_label_threshold: 5,
 			  datalabels: {
 			    ". $this->graph_activity["versions"] ."
 			  }
@@ -348,24 +337,23 @@ class page_output
 			});
 			</script>";
 
-			print "<div id=\"server_activity\" class=\"graph_standard\"></div>";
+			print "<div id=\"app_activity\" class=\"graph_standard\"></div>";
 		}
 
 		// This month only
 		print "<br><br>";
-		print "<p><b>Active, unique installations in past 28 days</b><br>
-		Number of unique installation of the server per version seen in the past 28 days. Note that users who upgrade will appear in the total for both versions.</p>";
-
+		print "<p><b>Active, unique installations in past 28 days.</b><br>
+		Number of unique installation of the application per version seen in the past 28 days. Note that users who upgrade will appear in the total for both versions.</p>";
 		if (empty($this->graph_versions_atm))
 		{
-			format_msgbox("info", "There are no current statistics for server versions, unable to generate graph");
+			format_msgbox("info", "There is no current statistics for application versions, unable to generate graph");
 		}
 		else
 		{
 
 			print "<script>
 			Event.observe(window, 'load', function() {
-			var server_versions_atm = new Grafico.BarGraph($('server_versions_atm'),
+			var app_versions_atm = new Grafico.BarGraph($('app_versions_atm'),
 			[". $this->graph_versions_atm["data"] ."],
 			{
 				labels :              [". $this->graph_versions_atm["labels"] ."],
@@ -376,24 +364,23 @@ class page_output
 			});
 			</script>";
 
-			print "<div id=\"server_versions_atm\" class=\"graph_standard\"></div>";
+			print "<div id=\"app_versions_atm\" class=\"graph_standard\"></div>";
 		}
 
-
-		// Major Server Versions
-		print "<p><b>Unique server installations per version.</b><br>
-		Number of unique installation of the server per version seen. Note that users who upgrade will appear in the total for both versions.</p>";
+		// Major application versions - unique installs
+		print "<p><b>Unique application installations per version.</b><br>
+		Number of unique installation of the application per version ever seen. Note that users who upgrade will appear in the total for both versions.</p>";
 
 		if (empty($this->graph_versions))
 		{
-			format_msgbox("info", "There are no current statistics for server versions, unable to generate graph");
+			format_msgbox("info", "There is no current statistics for application versions, unable to generate graph");
 		}
 		else
 		{
 
 			print "<script>
 			Event.observe(window, 'load', function() {
-			var server_versions = new Grafico.BarGraph($('server_versions'),
+			var app_versions = new Grafico.BarGraph($('app_versions'),
 			[". $this->graph_versions["data"] ."],
 			{
 				labels :              [". $this->graph_versions["labels"] ."],
@@ -404,10 +391,12 @@ class page_output
 			});
 			</script>";
 
-			print "<div id=\"server_versions\" class=\"graph_standard\"></div>";
+			print "<div id=\"app_versions\" class=\"graph_standard\"></div>";
 		}
+		
 	
 	}
+
 }
 
 ?>

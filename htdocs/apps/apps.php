@@ -82,7 +82,13 @@ class page_output
 			// stats link
 			$structure = NULL;
 			$structure["id"]["column"]	= "id";
-			$this->obj_table->add_link("tbl_lnk_stats", "apps/stats.php", $structure);
+			$this->obj_table->add_link("tbl_lnk_stats_app", "apps/stats.php", $structure);
+
+			$structure = NULL;
+			$structure["id"]["column"]	= "id";
+			$this->obj_table->add_link("tbl_lnk_stats_geo", "apps/geostats.php", $structure);
+
+
 
 
 			// display the table

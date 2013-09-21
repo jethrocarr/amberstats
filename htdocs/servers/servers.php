@@ -78,10 +78,14 @@ class page_output
 			$structure["id"]["column"]	= "id";
 			$this->obj_table->add_link("tbl_lnk_details", "servers/view.php", $structure);
 
-			// stats link
+			// stats links
 			$structure = NULL;
 			$structure["id"]["column"]	= "id";
-			$this->obj_table->add_link("tbl_lnk_stats", "servers/stats.php", $structure);
+			$this->obj_table->add_link("tbl_lnk_stats_servers", "servers/stats.php", $structure);
+
+			$structure = NULL;
+			$structure["id"]["column"]	= "id";
+			$this->obj_table->add_link("tbl_lnk_stats_os", "servers/osstats.php", $structure);
 
 
 			// display the table

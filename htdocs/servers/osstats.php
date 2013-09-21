@@ -1,11 +1,11 @@
 <?php
 /*
-	servers/stats.php
+	servers/osstats.php
 
 	access:
 		admin
 
-	Statistics for the servers running the reported applications.
+	Statistics for the operating systems powering the different servers.
 */
 
 class page_output
@@ -14,7 +14,6 @@ class page_output
 	var $obj_menu_nav;
 	var $obj_form;
 
-	var $option_versions;
 	var $requires;
 
 	var $graph_activity;
@@ -30,22 +29,14 @@ class page_output
 
 		// fetch variables
 		$this->obj_server->id		= security_script_input('/^[0-9]*$/', $_GET["id"]);
-		$this->option_versions		= @security_script_input('/^[a-z]*$/', $_GET["versions"]);
-
-		// options for stats
-		if (!$this->option_versions)
-		{
-			$this->option_versions = "major";
-		}
-
 
 
 		// define the navigiation menu
 		$this->obj_menu_nav = New menu_nav;
 
 		$this->obj_menu_nav->add_item("Details", "page=servers/view.php&id=". $this->obj_server->id ."");
-		$this->obj_menu_nav->add_item("Server Statistics", "page=servers/stats.php&id=". $this->obj_server->id ."", TRUE);
-		$this->obj_menu_nav->add_item("Operating System Statistics", "page=servers/osstats.php&id=". $this->obj_server->id ."");
+		$this->obj_menu_nav->add_item("Server Statistics", "page=servers/stats.php&id=". $this->obj_server->id ."");
+		$this->obj_menu_nav->add_item("Operating System Statistics", "page=servers/osstats.php&id=". $this->obj_server->id ."", TRUE);
 		$this->obj_menu_nav->add_item("Delete", "page=servers/delete.php&id=". $this->obj_server->id ."");
 
 		// include the grafico library and it's dependencies
@@ -87,7 +78,7 @@ class page_output
 		$obj_sql->string	= "SELECT DISTINCT
 					A.year as year,
 					A.month as month,
-					stats_server_versions.version_". $this->option_versions ." as version,
+					stats_server_versions.os_type as version,
 					stats_server_versions.id as version_id,
 					A.total as total
 					FROM
@@ -175,7 +166,7 @@ class page_output
 
 		$obj_sql		= New sql_query;
 		$obj_sql->string	= "SELECT DISTINCT
-					stats_server_versions.version_". $this->option_versions ." as version,
+					stats_server_versions.os_type as version,
 					COUNT(A.subscription_id) as total
 					FROM
 					(
@@ -222,7 +213,7 @@ class page_output
 
 		$obj_sql		= New sql_query;
 		$obj_sql->string	= "SELECT DISTINCT
-					stats_server_versions.version_". $this->option_versions ." as version,
+					stats_server_versions.os_type as version,
 					COUNT(A.subscription_id) as total
 					FROM
 					(
@@ -266,54 +257,8 @@ class page_output
 	function render_html()
 	{
 		// title + summary
-		print "<h3>SERVER STATISTICS</h3><br>";
-
-		// options panel
-		print "<div class=\"stats_options\">";
-		print "<form method=\"get\" class=\"form_standard\">";
-		
-		$form = New form_input;
-		$form->formname = "server_options";
-		$form->language = "en_us";
-
-		// include page name
-		$structure = NULL;
-		$structure["fieldname"] 	= "page";
-		$structure["type"]		= "hidden";
-		$structure["defaultvalue"]	= $_GET["page"];
-		$form->add_input($structure);
-		$form->render_field("page");
-
-		// include ID
-		$structure = NULL;
-		$structure["fieldname"]		= "id";
-		$structure["type"]		= "hidden";
-		$structure["defaultvalue"]	= $this->obj_server->id;
-		$form->add_input($structure);
-		$form->render_field("id");
-
-		// options
-		$structure = NULL;
-		$structure["fieldname"]			= "versions";
-		$structure["type"]			= "radio";
-		$structure["defaultvalue"]		= $this->option_versions;
-		$structure["values"]			= array("minor", "major");
-		$structure["translations"]		= array("minor" => "Minor Versions", "major" => "Major Versions");
-		$form->add_input($structure);
-		$form->render_field("versions");
-
-
-		// submit button	
-		$structure = NULL;
-		$structure["fieldname"]		= "submit";
-		$structure["type"]		= "submit";
-		$structure["defaultvalue"]	= "Apply Options";
-		$form->add_input($structure);
-		$form->render_field("submit");
-
-		print "</div>";
-
-
+		print "<h3>OPERATING SYSTEM STATISTICS</h3><br>";
+		print "<p>Operating system types used to power the servers used by the monitored applications.</p>";
 
 
 
