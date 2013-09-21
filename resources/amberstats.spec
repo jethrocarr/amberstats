@@ -1,7 +1,7 @@
 Summary: Statistics reporting application designed for use with metrics from phone home calls by applications.
 Name: amberstats
 Version: 0.0.1
-Release: 1%{dist}
+Release: 2%{dist}
 License: AGPLv3
 URL: http://projects.jethrocarr.com/p/oss-amberstats/
 Group: Applications/Internet
@@ -14,6 +14,7 @@ BuildRequires: gettext
 Requires: httpd, mod_ssl
 Requires: php >= 5.3.0, mysql-server, php-mysql, php-ldap, php-soap
 Requires: perl, perl-DBD-MySQL
+Requires: GeoIP
 Prereq: httpd, php, mysql-server, php-mysql
 
 
@@ -76,6 +77,10 @@ else
 	%{_datadir}/amberstats/resources/schema_update.pl --schema=%{_datadir}/amberstats/sql/ -v
 fi
 
+# Create the log file if it doesn't already exist
+touch /var/log/amberstats_queue_process.log
+chown apache:apache /var/log/amberstats_queue_process.log
+
 
 %postun
 
@@ -91,22 +96,23 @@ fi
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files www
+%files
 %defattr(-,root,root)
 %config %dir %{_sysconfdir}/amberstats
+%config %dir %{_sysconfdir}/cron.d/amberstats
+%config %dir %{_sysconfdir}/logrotate.d/amberstats
+
 %attr(770,root,apache) %config(noreplace) %{_sysconfdir}/amberstats/config.php
 %attr(660,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/amberstats.conf
+
 %{_datadir}/amberstats/htdocs
 %{_datadir}/amberstats/resources
 %{_datadir}/amberstats/sql
 
 %doc %{_datadir}/amberstats/README.md
 %doc %{_datadir}/amberstats/docs/AUTHORS
-%doc %{_datadir}/amberstats/docs/CONTRIBUTORS
 %doc %{_datadir}/amberstats/docs/COPYING
-%config %dir %{_sysconfdir}/cron.d/amberstats
-%config %dir %{_sysconfdir}/logrotate.d/amberstats
-
+%doc %{_datadir}/amberstats/docs/CONTRIBUTORS
 
 %changelog
 * Sat Aug 17 2013 Jethro Carr <jethro.carr@amberdms.com> 0.0.1

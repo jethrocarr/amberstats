@@ -7,5 +7,6 @@
 # This makes it easier to cache information like GeoIP rather than having to load
 # it every API request.
 #
-*/15 * * * * apache php -q /usr/share/amberstats/htdocs/include/cron/queue_process.php >> /var/log/amberstats_queue_process.log
+
+*/15 * * * * apache cd /usr/share/amberstats/htdocs/include/cron/ && php -q queue_process.php >> /var/log/amberstats_queue_process.log
 
