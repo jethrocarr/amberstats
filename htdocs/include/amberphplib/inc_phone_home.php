@@ -5,17 +5,30 @@
 	This class provides functions for reading stats from the system and submitting
 	then back to Amberstats in a "phone-home" feature.
 
-	Typicially this class is called at login but only actually executes once a day.
+	The stats returned are a small selection of general OS/platform/server details
+	and a randomly generated unique ID, used to track the upgrade patterns of users
+	over their lifespan of using the software.
 
-	No private data is submitted, only info such as customer ID & plan (if any) as
-	well as
+	The following is a full list and example of the types of details collected:
+
+	Field                 Example
+	-----                 -----
+	Application Name      Amberdms Billing System
+	Application Version   1.3.0
+	Server App            Apache/2.0.52 (CentOS)
+	Language Version      5.1.6
+	Subscription Type     opensource
+	Subscription ID       qwertyuiop234567890
+
+
+	Typicially this class is called at login but only actually executes once a day.
 */
 
 
 class phone_home
 {
-	var $url	= "https://prod-dev1.local.jethrocarr.com/development/opensource/oss-amberstats/htdocs/api/simple_post.php";
-	var $url_ssl	= false;	// set to true to enforce validation of SSL certificate
+	var $url	= "https://www.amberdms.com/api/opensource/amberdms_phone_home.php";
+	var $url_ssl	= true;	// set to true to enforce validation of SSL certificate
 
 	var $stats;	// used to hold stats about the system for submission upstream
 
