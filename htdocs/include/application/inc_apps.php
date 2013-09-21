@@ -93,7 +93,7 @@ class app
 		log_debug("apps", "Executing verify_delete_ok()");
 
 		$sql_obj		= New sql_query;
-		$sql_obj->string	= "SELECT id FROM `apps` WHERE id_app='". $this->id ."' LIMIT 1";
+		$sql_obj->string	= "SELECT id FROM `stats` WHERE id_app='". $this->id ."' LIMIT 1";
 		$sql_obj->execute();
 
 		if ($sql_obj->num_rows())

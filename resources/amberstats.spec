@@ -1,4 +1,4 @@
-Summary: A web-based management system for DNS, consisting of a PHP web interface and some PHP CLI components to hook into FreeRadius.
+Summary: Statistics reporting application designed for use with metrics from phone home calls by applications.
 Name: amberstats
 Version: 0.0.1
 Release: 1%{dist}
@@ -20,6 +20,9 @@ Prereq: httpd, php, mysql-server, php-mysql
 %description
 Amberstats is an application for collecting and reporting on phone home statistics
 from remote applications, such as software distributed by a developer.
+
+Statistics include application versions, geographic location of users, platform
+versions, web server versions and operating systems.
 
 %prep
 %setup -q -n amberstats-%{version}
@@ -49,7 +52,11 @@ install -m 644 resources/amberstats-httpdconfig.conf $RPM_BUILD_ROOT%{_sysconfdi
 
 # install the cronfile
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/
-install -m 644 resources/amberstats.cron $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/amberstat
+install -m 644 resources/amberstats.cron $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/amberstats
+
+# install the logrotation rules
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/
+install -m 644 resources/amberstats.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/amberstats
 
 
 %post
@@ -70,22 +77,15 @@ else
 fi
 
 
-%postun www
+%postun
 
 # check if this is being removed for good, or just so that an
 # upgrade can install.
 if [ $1 == 0 ];
 then
 	# user needs to remove DB
-	echo "amberstats has been removed, but the MySQL database and user will need to be removed manually."
+	echo "Amberstats has been removed, but the MySQL database and user will need to be removed manually."
 fi
-
-
-%preun bind
-
-# stop running process
-/etc/init.d/amberstats_logpush stop
-
 
 
 %clean
@@ -104,16 +104,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_datadir}/amberstats/docs/AUTHORS
 %doc %{_datadir}/amberstats/docs/CONTRIBUTORS
 %doc %{_datadir}/amberstats/docs/COPYING
-
-
-%files bind
-%defattr(-,root,root)
-%config %dir %{_sysconfdir}/amberstats
-%config %dir %{_sysconfdir}/cron.d/amberstats-bind
-%config(noreplace) %{_sysconfdir}/named.amberstats.conf
-%config(noreplace) %{_sysconfdir}/amberstats/config-bind.php
-%{_datadir}/amberstats/bind
-/etc/init.d/amberstats_logpush
+%config %dir %{_sysconfdir}/cron.d/amberstats
+%config %dir %{_sysconfdir}/logrotate.d/amberstats
 
 
 %changelog

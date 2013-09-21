@@ -1,6 +1,6 @@
 <?php
 /*
-	platforms/delete.php
+	servers/delete.php
 
 	access:
 		admin
@@ -9,7 +9,7 @@
 
 class page_output
 {
-	var $obj_platform;
+	var $obj_server;
 	var $obj_menu_nav;
 	var $obj_form;
 
@@ -18,19 +18,19 @@ class page_output
 	{
 
 		// initate object
-		$this->obj_platform	= New platform;
+		$this->obj_server	= New server;
 
 		// fetch variables
-		$this->obj_platform->id	= security_script_input('/^[0-9]*$/', $_GET["id"]);
+		$this->obj_server->id	= security_script_input('/^[0-9]*$/', $_GET["id"]);
 
 
 		// define the navigiation menu
 		$this->obj_menu_nav = New menu_nav;
 
-		$this->obj_menu_nav->add_item("Details", "page=platforms/view.php&id=". $this->obj_platform->id ."");
-		$this->obj_menu_nav->add_item("Server Statistics", "page=platforms/stats.php&id=". $this->obj_platform->id ."");
+		$this->obj_menu_nav->add_item("Details", "page=servers/view.php&id=". $this->obj_server->id ."");
+		$this->obj_menu_nav->add_item("Server Statistics", "page=servers/stats.php&id=". $this->obj_server->id ."");
 		$this->obj_menu_nav->add_item("Operating System Statistics", "page=servers/osstats.php&id=". $this->obj_server->id ."");
-		$this->obj_menu_nav->add_item("Delete", "page=platforms/delete.php&id=". $this->obj_platform->id ."", TRUE);
+		$this->obj_menu_nav->add_item("Delete", "page=servers/delete.php&id=". $this->obj_server->id ."", TRUE);
 	}
 
 
@@ -43,9 +43,9 @@ class page_output
 	function check_requirements()
 	{
 		// make sure the server is valid
-		if (!$this->obj_platform->verify_id())
+		if (!$this->obj_server->verify_id())
 		{
-			log_write("error", "page_output", "The requested platform (". $this->obj_platform->id .") does not exist - possibly the platform has been deleted?");
+			log_write("error", "page_output", "The requested server (". $this->obj_server->id .") does not exist - possibly the server has been deleted?");
 			return 0;
 		}
 
@@ -60,31 +60,31 @@ class page_output
 			Define form structure
 		*/
 		$this->obj_form			= New form_input;
-		$this->obj_form->formname	= "platform_delete";
+		$this->obj_form->formname	= "server_delete";
 		$this->obj_form->language	= $_SESSION["user"]["lang"];
 
-		$this->obj_form->action		= "platforms/delete-process.php";
+		$this->obj_form->action		= "servers/delete-process.php";
 		$this->obj_form->method		= "post";
 
 
 
 		// general
 		$structure = NULL;
-		$structure["fieldname"] 	= "platform_name";
+		$structure["fieldname"] 	= "server_name";
 		$structure["type"]		= "text";
 		$this->obj_form->add_input($structure);
 							
 		$structure = NULL;
-		$structure["fieldname"]		= "platform_description";
+		$structure["fieldname"]		= "server_description";
 		$structure["type"]		= "text";
 		$this->obj_form->add_input($structure);
 
 
 		// hidden section
 		$structure = NULL;
-		$structure["fieldname"] 	= "id_platform";
+		$structure["fieldname"] 	= "id_server";
 		$structure["type"]		= "hidden";
-		$structure["defaultvalue"]	= $this->obj_platform->id;
+		$structure["defaultvalue"]	= $this->obj_server->id;
 		$this->obj_form->add_input($structure);
 			
 
@@ -92,7 +92,7 @@ class page_output
 		$structure = NULL;
 		$structure["fieldname"] 	= "delete_confirm";
 		$structure["type"]		= "checkbox";
-		$structure["options"]["label"]	= "Yes, I wish to delete this platform and realise that once deleted the data can not be recovered.";
+		$structure["options"]["label"]	= "Yes, I wish to delete this server and realise that once deleted the data can not be recovered.";
 		$this->obj_form->add_input($structure);
 
 		// submit
@@ -104,8 +104,8 @@ class page_output
 		
 		
 		// define subforms
-		$this->obj_form->subforms["platform_delete"]	= array("platform_name","platform_description");
-		$this->obj_form->subforms["hidden"]		= array("id_platform");
+		$this->obj_form->subforms["server_delete"]	= array("server_name","server_description");
+		$this->obj_form->subforms["hidden"]		= array("id_server");
 		$this->obj_form->subforms["submit"]		= array("delete_confirm", "submit");
 
 
@@ -116,10 +116,10 @@ class page_output
 		}
 		else
 		{
-			if ($this->obj_platform->load_data())
+			if ($this->obj_server->load_data())
 			{
-				$this->obj_form->structure["platform_name"]["defaultvalue"]		= $this->obj_platform->data["platform_name"];
-				$this->obj_form->structure["platform_description"]["defaultvalue"]	= $this->obj_platform->data["platform_description"];
+				$this->obj_form->structure["server_name"]["defaultvalue"]		= $this->obj_server->data["server_name"];
+				$this->obj_form->structure["server_description"]["defaultvalue"]	= $this->obj_server->data["server_description"];
 			}
 		}
 	}
@@ -128,8 +128,8 @@ class page_output
 	function render_html()
 	{
 		// title + summary
-		print "<h3>DELETE PLATFORM</h3><br>";
-		print "<p>This page allows you to delete an unwanted platform.</p>";
+		print "<h3>DELETE SERVER</h3><br>";
+		print "<p>This page allows you to delete an unwanted server.</p>";
 
 	
 		// display the form

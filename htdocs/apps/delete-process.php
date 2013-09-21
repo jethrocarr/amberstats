@@ -1,11 +1,11 @@
 <?php
 /*
-	servers/delete-process.php
+	apps/delete-process.php
 
 	access:
-		namedadmins
+		admin
 
-	Deletes an unwanted server.
+	Deletes an unwanted app.
 */
 
 
@@ -15,19 +15,19 @@ require("../include/amberphplib/main.php");
 require("../include/application/main.php");
 
 
-if (user_permissions_get('namedadmins'))
+if (user_permissions_get('admin'))
 {
 	/*
 		Form Input
 	*/
 
-	$obj_name_server		= New name_server;
-	$obj_name_server->id		= security_form_input_predefined("int", "id_name_server", 0, "");
+	$obj_app		= New app;
+	$obj_app->id	= security_form_input_predefined("int", "id_app", 0, "");
 
 
 	// for error return if needed
-	@security_form_input_predefined("any", "server_name", 1, "");
-	@security_form_input_predefined("any", "server_description", 0, "");
+	@security_form_input_predefined("any", "app_name", 1, "");
+	@security_form_input_predefined("any", "app_description", 0, "");
 
 	// confirm deletion
 	@security_form_input_predefined("any", "delete_confirm", 1, "You must confirm the deletion");
@@ -39,13 +39,15 @@ if (user_permissions_get('namedadmins'))
 		Verify Data
 	*/
 
-
-	// verify the selected server exists
-	if (!$obj_name_server->verify_id())
+	if (!$obj_app->verify_id())
 	{
-		log_write("error", "process", "The server you have attempted to delete - ". $obj_name_server->id ." - does not exist in this system.");
+		log_write("error", "process", "The app you have attempted to delete - ". $obj_app->id ." - does not exist in this system.");
 	}
 
+	if (!$obj_app->verify_delete_ok())
+	{
+		log_write("error", "process", "The app you have attempted to delete - ". $obj_app->id ." - is actively used by stats and cannot be deleted.");
+	}
 
 
 
@@ -55,8 +57,8 @@ if (user_permissions_get('namedadmins'))
 
 	if (error_check())
 	{
-		$_SESSION["error"]["form"]["name_server_delete"]	= "failed";
-		header("Location: ../index.php?page=servers/delete.php&id=". $obj_name_server->id ."");
+		$_SESSION["error"]["form"]["app_delete"]	= "failed";
+		header("Location: ../index.php?page=apps/delete.php&id=". $obj_app->id ."");
 
 		exit(0);
 	}
@@ -68,10 +70,10 @@ if (user_permissions_get('namedadmins'))
 
 
 		/*
-			Delete server
+			Delete
 		*/
 
-		$obj_name_server->action_delete();
+		$obj_app->action_delete();
 
 
 
@@ -79,7 +81,7 @@ if (user_permissions_get('namedadmins'))
 			Return
 		*/
 
-		header("Location: ../index.php?page=servers/servers.php");
+		header("Location: ../index.php?page=apps/apps.php");
 		exit(0);
 
 

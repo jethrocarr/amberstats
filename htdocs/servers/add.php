@@ -56,6 +56,7 @@ class page_output
 		$structure = NULL;
 		$structure["fieldname"]		= "regex_serverid";
 		$structure["type"]		= "input";
+		$structure["options"]["req"]	= "yes";
 		$structure["options"]["label"]	= " ". lang_trans("help_regex_serverid");
 		$this->obj_form->add_input($structure);
 

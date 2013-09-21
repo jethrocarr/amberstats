@@ -91,11 +91,9 @@ class server
 	function verify_delete_ok()
 	{
 		log_debug("servers", "Executing verify_delete_ok()");
-/*
-	TODO
 
 		$sql_obj		= New sql_query;
-		$sql_obj->string	= "SELECT id FROM `apps` WHERE id_server='". $this->id ."' LIMIT 1";
+		$sql_obj->string	= "SELECT id FROM `stats_server_versions` WHERE id_server='". $this->id ."' LIMIT 1";
 		$sql_obj->execute();
 
 		if ($sql_obj->num_rows())
@@ -104,8 +102,7 @@ class server
 		}
 
 		return 1;
-*/
-		return 0;
+
 	} // end of verify_delete_ok
 
 

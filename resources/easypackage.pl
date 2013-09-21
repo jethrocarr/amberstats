@@ -74,7 +74,6 @@ system("find $name_withversion/* -type f | grep .gitignore | sed \"s/^/rm -f /\"
 
 # remove a config file if one exists
 system("rm -f $name_withversion/htdocs/include/config-settings.php");
-system("rm -f $name_withversion/bind/include/config-settings.php");
 
 # insert version into spec file and write changed version to /tmp/ location
 open(IN, "$name_withversion/resources/$name_base.spec") || die("Unable to open spec file");
