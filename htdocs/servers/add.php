@@ -58,18 +58,21 @@ class page_output
 		$structure["type"]		= "input";
 		$structure["options"]["req"]	= "yes";
 		$structure["options"]["label"]	= " ". lang_trans("help_regex_serverid");
+		$structure["defaultvalue"]	= "/^ExampleName/";
 		$this->obj_form->add_input($structure);
 
 		$structure = NULL;
 		$structure["fieldname"]		= "regex_version_minor";
 		$structure["type"]		= "input";
 		$structure["options"]["label"]	= " ". lang_trans("help_regex_version_minor");
+		$structure["defaultvalue"]	= "/\/([0-9.]*)/";
 		$this->obj_form->add_input($structure);
 
 		$structure = NULL;
 		$structure["fieldname"]		= "regex_version_major";
 		$structure["type"]		= "input";
 		$structure["options"]["label"]	= " ". lang_trans("help_regex_version_major");
+		$structure["defaultvalue"]	= "/\/([0-9]*.[0-9]*)/";
 		$this->obj_form->add_input($structure);
 
 		$structure = NULL;
