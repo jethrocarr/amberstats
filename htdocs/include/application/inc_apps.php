@@ -281,6 +281,10 @@ class app
 		log_debug("apps", "Executing action_delete()");
 
 		$sql_obj		= New sql_query;
+		$sql_obj->string	= "DELETE FROM `apps_agents` WHERE id_application='". $this->id ."'";
+		$sql_obj->execute();
+
+		$sql_obj		= New sql_query;
 		$sql_obj->string	= "DELETE FROM `apps` WHERE id='". $this->id ."' LIMIT 1";
 		$sql_obj->execute();
 
