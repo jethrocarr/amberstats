@@ -103,7 +103,8 @@ class page_output
 						FROM stats
 						WHERE id_app='". $this->obj_app->id ."' 
 						GROUP BY YEAR(date),
-						MONTH(date)
+						MONTH(date),
+						country
 					) A
 					LEFT JOIN stats_country ON A.country = stats_country.id
 					ORDER BY year, month";
