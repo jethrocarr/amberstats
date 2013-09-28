@@ -14,7 +14,7 @@ include_once("../include/amberphplib/main.php");
 include_once("../include/application/main.php");
 
 
-if (user_permissions_get(namedadmins))
+if (user_permissions_get("admin"))
 {
 	////// INPUT PROCESSING ////////////////////////
 
@@ -277,10 +277,17 @@ if (user_permissions_get(namedadmins))
 		$sql_obj->string	= "DELETE FROM `users_sessions` WHERE userid='$id'";
 		$sql_obj->execute();
 
-
-		// goto view page
-		header("Location: ../index.php?page=user/user-view.php&id=$id");
-		exit(0);
+		if ($_SESSION["user"]["id"] == $id)
+		{
+			log_write("notification", "process", "As you have made changes to your own account, you will be now logged out. <a href=\"index.php?page=home.php\">Please login again and the changes will be active</a>.");
+			header("Location: ../index.php?page=message.php");
+			exit(0);
+		}
+		else
+		{
+			header("Location: ../index.php?page=user/user-view.php&id=$id");
+			exit(0);
+		}
 
 
 	} // if valid data input
