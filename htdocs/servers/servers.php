@@ -17,7 +17,7 @@ class page_output
 
 	function check_permissions()
 	{
-		return user_permissions_get("admin");
+		return user_permissions_get("stats_read");
 	}
 
 	function check_requirements()
@@ -74,9 +74,12 @@ class page_output
 		else
 		{
 			// details link
-			$structure = NULL;
-			$structure["id"]["column"]	= "id";
-			$this->obj_table->add_link("tbl_lnk_details", "servers/view.php", $structure);
+			if (user_permissions_get("stats_config"))
+			{
+				$structure = NULL;
+				$structure["id"]["column"]	= "id";
+				$this->obj_table->add_link("tbl_lnk_details", "servers/view.php", $structure);
+			}
 
 			// stats links
 			$structure = NULL;
@@ -94,7 +97,10 @@ class page_output
 		}
 
 		// add link
-		print "<p><a class=\"button\" href=\"index.php?page=servers/add.php\">Add a new server type</a></p>";
+		if (user_permissions_get("stats_config"))
+		{
+			print "<p><a class=\"button\" href=\"index.php?page=servers/add.php\">Add a new server type</a></p>";
+		}
 	}
 }
 

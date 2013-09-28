@@ -34,7 +34,7 @@ class page_output
 
 	function check_permissions()
 	{
-		return user_permissions_get("admin");
+		return user_permissions_get("stats_config");
 	}
 
 

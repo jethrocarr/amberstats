@@ -15,7 +15,7 @@ require("../include/amberphplib/main.php");
 require("../include/application/main.php");
 
 
-if (user_permissions_get('admin'))
+if (user_permissions_get('stats_config'))
 {
 	$obj_sql_stats			= New sql_query;
 	$obj_sql_stats->string		= "SELECT id FROM stats_incoming";

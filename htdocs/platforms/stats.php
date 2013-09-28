@@ -41,9 +41,13 @@ class page_output
 		// define the navigiation menu
 		$this->obj_menu_nav = New menu_nav;
 
-		$this->obj_menu_nav->add_item("Details", "page=platforms/view.php&id=". $this->obj_platform->id ."");
+		if (user_permissions_get("stats_config"))
+			$this->obj_menu_nav->add_item("Details", "page=platforms/view.php&id=". $this->obj_platform->id ."");
+
 		$this->obj_menu_nav->add_item("Statistics", "page=platforms/stats.php&id=". $this->obj_platform->id ."", TRUE);
-		$this->obj_menu_nav->add_item("Delete", "page=platforms/delete.php&id=". $this->obj_platform->id ."");
+		
+		if (user_permissions_get("stats_config"))
+			$this->obj_menu_nav->add_item("Delete", "page=platforms/delete.php&id=". $this->obj_platform->id ."");
 
 		// include the grafico library and it's dependencies
 		$this->requires["javascript"][]	= "external/prototype.js";
@@ -57,7 +61,7 @@ class page_output
 
 	function check_permissions()
 	{
-		return user_permissions_get("admin");
+		return user_permissions_get("stats_read");
 	}
 
 

@@ -35,15 +35,8 @@ else
 
 		function check_permissions()
 		{
-			if (user_permissions_get("admin"))
-			{
-				return 1;
-			}
-			else
-			{
-				log_write("error", "page_output", "You do not have permissions to access this interface, request your administrator to assign you to the namedadmins group");
-				return 0;
-			}
+			// everyone permitted
+			return 1;
 		}
 
 

@@ -34,10 +34,14 @@ class page_output
 		// define the navigiation menu
 		$this->obj_menu_nav = New menu_nav;
 
-		$this->obj_menu_nav->add_item("Details", "page=servers/view.php&id=". $this->obj_server->id ."");
+		if (user_permissions_get("stats_config"))
+			$this->obj_menu_nav->add_item("Details", "page=servers/view.php&id=". $this->obj_server->id ."");
+
 		$this->obj_menu_nav->add_item("Server Statistics", "page=servers/stats.php&id=". $this->obj_server->id ."");
 		$this->obj_menu_nav->add_item("Operating System Statistics", "page=servers/osstats.php&id=". $this->obj_server->id ."", TRUE);
-		$this->obj_menu_nav->add_item("Delete", "page=servers/delete.php&id=". $this->obj_server->id ."");
+
+		if (user_permissions_get("stats_config"))
+			$this->obj_menu_nav->add_item("Delete", "page=servers/delete.php&id=". $this->obj_server->id ."");
 
 		// include the grafico library and it's dependencies
 		$this->requires["javascript"][]	= "external/prototype.js";
@@ -51,7 +55,7 @@ class page_output
 
 	function check_permissions()
 	{
-		return user_permissions_get("admin");
+		return user_permissions_get("stats_read");
 	}
 
 
