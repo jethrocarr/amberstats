@@ -1,5 +1,7 @@
 # AMBERSTATS
 
+**This project is considered deprecated and is here for reference purposes only**
+
 ## Introduction
 
 AmberStats is a lightweight application for phoning home from open source
@@ -47,6 +49,5 @@ upgrade lifespan) and the IP address of the server sending the API request.
 To get started with AmberStats, you'll need to setup the AmberStats collection
 server and UI, then start adding it to applications.
 
-Refer to https://projects.jethrocarr.com/p/oss-amberstats/doc/ for details on
-how to setup AmberdStats
+Once done, you need to write agents for your applications.
 
